@@ -1,21 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/components/LanguageProvider";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
   const { language, setLanguage, t } = useLanguage();
 
   const navItems = [
-    { label: t.nav.home, href: "/" },
-    { label: t.nav.about, href: "/gioi-thieu" },
-    { label: t.nav.services, href: "/dich-vu" },
-    { label: t.nav.projects, href: "/du-an" },
-    { label: t.nav.process, href: "/#process" },
-    { label: t.nav.news, href: "/tin-tuc" },
-    { label: t.nav.contact, href: "/lien-he" },
-  ];
+  { label: t.nav.home, href: "/" },
+  { label: t.nav.about, href: "/gioi-thieu" },
+  { label: t.nav.services, href: "/dich-vu" },
+  { label: t.nav.projects, href: "/du-an" },
+  { label: t.nav.process, href: "/quy-trinh" },
+  { label: t.nav.news, href: "/tin-tuc" },
+  { label: t.nav.contact, href: "/lien-he" },
+];
 
   return (
     <header className="fixed left-0 top-0 z-50 w-full border-b border-white/10 bg-[#0b1016]/95 backdrop-blur-md">
@@ -47,18 +49,34 @@ export default function Header() {
           </div>
         </a>
 
-        {/* DESKTOP MENU */}
-        <nav className="hidden items-center gap-6 lg:flex">
-          {navItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="relative py-2 text-[11px] font-semibold tracking-[0.03em] text-white/90 transition hover:text-[#e5b24a] xl:text-[12px]"
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
+       {/* DESKTOP MENU */}
+<nav className="hidden items-center gap-6 lg:flex">
+  {navItems.map((item) => {
+    const isActive =
+  item.href === "/"
+    ? pathname === "/"
+    : pathname === item.href ||
+      pathname.startsWith(`${item.href}/`);
+
+    return (
+      <a
+        key={item.href}
+        href={item.href}
+        className={`relative py-2 text-[11px] font-semibold tracking-[0.03em] transition xl:text-[12px] ${
+          isActive
+            ? "text-[#e5b24a]"
+            : "text-white/90 hover:text-[#e5b24a]"
+        }`}
+      >
+        {item.label}
+
+        {isActive && (
+          <span className="absolute bottom-0 left-0 h-[2px] w-full bg-[#e5b24a]" />
+        )}
+      </a>
+    );
+  })}
+</nav>
 
         {/* DESKTOP RIGHT */}
         <div className="hidden items-center gap-3 lg:flex">
