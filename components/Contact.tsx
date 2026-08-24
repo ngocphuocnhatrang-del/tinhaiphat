@@ -40,10 +40,10 @@ export default function Contact() {
                 </p>
 
                 <a
-                  href="tel:0901234567"
+                  href="tel:0943666866"
                   className="mt-2 inline-block text-[24px] font-extrabold text-[#d7a53a]"
                 >
-                  0901 234 567
+                  0943 666 866
                 </a>
               </div>
 

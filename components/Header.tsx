@@ -8,13 +8,13 @@ export default function Header() {
   const { language, setLanguage, t } = useLanguage();
 
   const navItems = [
-    { label: t.nav.home, href: "#home" },
-    { label: t.nav.about, href: "#about" },
-    { label: t.nav.services, href: "#services" },
-    { label: t.nav.projects, href: "#projects" },
-    { label: t.nav.process, href: "#process" },
-    { label: t.nav.news, href: "#news" },
-    { label: t.nav.contact, href: "#contact" },
+    { label: t.nav.home, href: "/" },
+    { label: t.nav.about, href: "/gioi-thieu" },
+    { label: t.nav.services, href: "/dich-vu" },
+    { label: t.nav.projects, href: "/du-an" },
+    { label: t.nav.process, href: "/#process" },
+    { label: t.nav.news, href: "/tin-tuc" },
+    { label: t.nav.contact, href: "/lien-he" },
   ];
 
   return (
@@ -22,7 +22,7 @@ export default function Header() {
       <div className="mx-auto flex h-[72px] w-full max-w-[1440px] items-center justify-between px-4 sm:px-5 lg:h-[76px] lg:px-8">
         {/* LOGO */}
         <a
-          href="#home"
+          href="/"
           className="flex min-w-0 items-center gap-2.5 sm:gap-3"
         >
           <div className="flex h-10 w-10 shrink-0 items-end justify-center gap-[2px] sm:h-11 sm:w-11">
@@ -49,21 +49,13 @@ export default function Header() {
 
         {/* DESKTOP MENU */}
         <nav className="hidden items-center gap-6 lg:flex">
-          {navItems.map((item, index) => (
+          {navItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className={`relative py-2 text-[11px] font-semibold tracking-[0.03em] transition xl:text-[12px] ${
-                index === 0
-                  ? "text-[#e5b24a]"
-                  : "text-white/90 hover:text-[#e5b24a]"
-              }`}
+              className="relative py-2 text-[11px] font-semibold tracking-[0.03em] text-white/90 transition hover:text-[#e5b24a] xl:text-[12px]"
             >
               {item.label}
-
-              {index === 0 && (
-                <span className="absolute bottom-0 left-0 h-[2px] w-full bg-[#e5b24a]" />
-              )}
             </a>
           ))}
         </nav>
@@ -97,11 +89,11 @@ export default function Header() {
           </div>
 
           <a
-            href="tel:0901234567"
+            href="tel:0943666866"
             className="hidden items-center gap-2 rounded-sm border border-[#d7a53a] px-4 py-2.5 text-[12px] font-bold text-[#e5b24a] transition hover:bg-[#d7a53a] hover:text-[#0b1016] xl:flex"
           >
             <span>☎</span>
-            <span>0901 234 567</span>
+            <span>0943 666 866</span>
           </a>
         </div>
 
@@ -184,12 +176,12 @@ export default function Header() {
           ))}
 
           <a
-            href="tel:0901234567"
+            href="tel:0943666866"
             onClick={() => setMenuOpen(false)}
             className="my-5 flex items-center justify-center gap-2 border border-[#d7a53a] px-4 py-3.5 text-[13px] font-bold text-[#e5b24a]"
           >
             <span>☎</span>
-            <span>0901 234 567</span>
+            <span>0943 666 866</span>
           </a>
         </nav>
       </div>
