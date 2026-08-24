@@ -1,23 +1,10 @@
-const quickLinks = [
-  { label: "Trang chủ", href: "#home" },
-  { label: "Giới thiệu", href: "#about" },
-  { label: "Dịch vụ", href: "#services" },
-  { label: "Dự án", href: "#projects" },
-  { label: "Quy trình", href: "#process" },
-  { label: "Tin tức", href: "#news" },
-  { label: "Liên hệ", href: "#contact" },
-];
+"use client";
 
-const services = [
-  "Thiết kế kiến trúc",
-  "Xây nhà trọn gói",
-  "Thi công phần thô",
-  "Thi công hoàn thiện",
-  "Cải tạo - sửa chữa",
-  "Thiết kế & nội thất",
-];
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-[#080d12] px-5 pt-16 text-white lg:px-8">
       <div className="mx-auto max-w-[1440px]">
@@ -44,21 +31,20 @@ export default function Footer() {
             </div>
 
             <p className="mt-5 max-w-[320px] text-[13px] leading-7 text-white/50">
-              Kiến tạo không gian - xây dựng giá trị bền vững. Đồng hành cùng
-              khách hàng từ thiết kế đến thi công hoàn thiện.
+              {t.footer.description}
             </p>
           </div>
 
           {/* QUICK LINKS */}
           <div>
             <h3 className="text-[13px] font-extrabold uppercase tracking-[0.08em] text-[#d7a53a]">
-              Liên kết nhanh
+              {t.footer.quickLinksTitle}
             </h3>
 
             <div className="mt-5 grid gap-3">
-              {quickLinks.map((item) => (
+              {t.footer.quickLinks.map((item) => (
                 <a
-                  key={item.label}
+                  key={item.href}
                   href={item.href}
                   className="text-[13px] text-white/55 transition hover:text-[#d7a53a]"
                 >
@@ -71,11 +57,11 @@ export default function Footer() {
           {/* SERVICES */}
           <div>
             <h3 className="text-[13px] font-extrabold uppercase tracking-[0.08em] text-[#d7a53a]">
-              Dịch vụ
+              {t.footer.servicesTitle}
             </h3>
 
             <div className="mt-5 grid gap-3">
-              {services.map((service) => (
+              {t.footer.services.map((service) => (
                 <a
                   key={service}
                   href="#services"
@@ -90,13 +76,13 @@ export default function Footer() {
           {/* CONTACT */}
           <div>
             <h3 className="text-[13px] font-extrabold uppercase tracking-[0.08em] text-[#d7a53a]">
-              Thông tin liên hệ
+              {t.footer.contactTitle}
             </h3>
 
             <div className="mt-5 space-y-5">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
-                  Hotline
+                  {t.footer.hotline}
                 </p>
 
                 <a
@@ -109,7 +95,7 @@ export default function Footer() {
 
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
-                  Email
+                  {t.footer.email}
                 </p>
 
                 <a
@@ -122,11 +108,11 @@ export default function Footer() {
 
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
-                  Khu vực hoạt động
+                  {t.footer.serviceArea}
                 </p>
 
                 <p className="mt-1 text-[13px] text-white/60">
-                  TP.HCM và khu vực lân cận
+                  {t.footer.serviceAreaValue}
                 </p>
               </div>
             </div>
@@ -135,15 +121,15 @@ export default function Footer() {
 
         {/* COPYRIGHT */}
         <div className="flex flex-col gap-3 py-6 text-[11px] text-white/35 md:flex-row md:items-center md:justify-between">
-          <p>© 2026 Tín Hải Phát Construction. All rights reserved.</p>
+          <p>{t.footer.copyright}</p>
 
           <div className="flex flex-wrap gap-5">
             <a href="#" className="transition hover:text-[#d7a53a]">
-              Chính sách bảo mật
+              {t.footer.privacy}
             </a>
 
             <a href="#" className="transition hover:text-[#d7a53a]">
-              Điều khoản sử dụng
+              {t.footer.terms}
             </a>
           </div>
         </div>

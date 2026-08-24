@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-
-const navItems = [
-  { label: "TRANG CHỦ", href: "#home" },
-  { label: "GIỚI THIỆU", href: "#about" },
-  { label: "DỊCH VỤ", href: "#services" },
-  { label: "DỰ ÁN", href: "#projects" },
-  { label: "QUY TRÌNH", href: "#process" },
-  { label: "TIN TỨC", href: "#news" },
-  { label: "LIÊN HỆ", href: "#contact" },
-];
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
+
+  const navItems = [
+    { label: t.nav.home, href: "#home" },
+    { label: t.nav.about, href: "#about" },
+    { label: t.nav.services, href: "#services" },
+    { label: t.nav.projects, href: "#projects" },
+    { label: t.nav.process, href: "#process" },
+    { label: t.nav.news, href: "#news" },
+    { label: t.nav.contact, href: "#contact" },
+  ];
 
   return (
     <header className="fixed left-0 top-0 z-50 w-full border-b border-white/10 bg-[#0b1016]/95 backdrop-blur-md">
@@ -46,12 +48,12 @@ export default function Header() {
         </a>
 
         {/* DESKTOP MENU */}
-        <nav className="hidden items-center gap-7 lg:flex">
+        <nav className="hidden items-center gap-6 lg:flex">
           {navItems.map((item, index) => (
             <a
-              key={item.label}
+              key={item.href}
               href={item.href}
-              className={`relative py-2 text-[12px] font-semibold tracking-[0.03em] transition ${
+              className={`relative py-2 text-[11px] font-semibold tracking-[0.03em] transition xl:text-[12px] ${
                 index === 0
                   ? "text-[#e5b24a]"
                   : "text-white/90 hover:text-[#e5b24a]"
@@ -66,43 +68,99 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* DESKTOP HOTLINE */}
-        <a
-          href="tel:0901234567"
-          className="hidden items-center gap-2 rounded-sm border border-[#d7a53a] px-4 py-2.5 text-[12px] font-bold text-[#e5b24a] transition hover:bg-[#d7a53a] hover:text-[#0b1016] lg:flex"
-        >
-          <span>☎</span>
-          <span>0901 234 567</span>
-        </a>
-
-        {/* MOBILE MENU BUTTON */}
-        <button
-          type="button"
-          aria-label={menuOpen ? "Đóng menu" : "Mở menu"}
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((prev) => !prev)}
-          className="ml-3 flex h-11 w-11 shrink-0 items-center justify-center lg:hidden"
-        >
-          <div className="relative h-5 w-7">
-            <span
-              className={`absolute left-0 top-0 h-[2px] w-7 bg-white transition-all duration-300 ${
-                menuOpen ? "top-[9px] rotate-45" : ""
+        {/* DESKTOP RIGHT */}
+        <div className="hidden items-center gap-3 lg:flex">
+          <div className="flex items-center border border-white/15">
+            <button
+              type="button"
+              onClick={() => setLanguage("vi")}
+              className={`px-3 py-2 text-[11px] font-extrabold transition ${
+                language === "vi"
+                  ? "bg-[#d7a53a] text-[#0b1016]"
+                  : "text-white/65 hover:text-[#d7a53a]"
               }`}
-            />
+            >
+              VI
+            </button>
 
-            <span
-              className={`absolute left-0 top-[9px] h-[2px] w-7 bg-white transition-all duration-300 ${
-                menuOpen ? "opacity-0" : "opacity-100"
+            <button
+              type="button"
+              onClick={() => setLanguage("en")}
+              className={`px-3 py-2 text-[11px] font-extrabold transition ${
+                language === "en"
+                  ? "bg-[#d7a53a] text-[#0b1016]"
+                  : "text-white/65 hover:text-[#d7a53a]"
               }`}
-            />
-
-            <span
-              className={`absolute left-0 top-[18px] h-[2px] w-7 bg-white transition-all duration-300 ${
-                menuOpen ? "top-[9px] -rotate-45" : ""
-              }`}
-            />
+            >
+              EN
+            </button>
           </div>
-        </button>
+
+          <a
+            href="tel:0901234567"
+            className="hidden items-center gap-2 rounded-sm border border-[#d7a53a] px-4 py-2.5 text-[12px] font-bold text-[#e5b24a] transition hover:bg-[#d7a53a] hover:text-[#0b1016] xl:flex"
+          >
+            <span>☎</span>
+            <span>0901 234 567</span>
+          </a>
+        </div>
+
+        {/* MOBILE CONTROLS */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <div className="flex items-center border border-white/15">
+            <button
+              type="button"
+              onClick={() => setLanguage("vi")}
+              className={`px-2.5 py-2 text-[10px] font-extrabold transition ${
+                language === "vi"
+                  ? "bg-[#d7a53a] text-[#0b1016]"
+                  : "text-white/65"
+              }`}
+            >
+              VI
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setLanguage("en")}
+              className={`px-2.5 py-2 text-[10px] font-extrabold transition ${
+                language === "en"
+                  ? "bg-[#d7a53a] text-[#0b1016]"
+                  : "text-white/65"
+              }`}
+            >
+              EN
+            </button>
+          </div>
+
+          <button
+            type="button"
+            aria-label={menuOpen ? "Đóng menu" : "Mở menu"}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((prev) => !prev)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center"
+          >
+            <div className="relative h-5 w-7">
+              <span
+                className={`absolute left-0 top-0 h-[2px] w-7 bg-white transition-all duration-300 ${
+                  menuOpen ? "top-[9px] rotate-45" : ""
+                }`}
+              />
+
+              <span
+                className={`absolute left-0 top-[9px] h-[2px] w-7 bg-white transition-all duration-300 ${
+                  menuOpen ? "opacity-0" : "opacity-100"
+                }`}
+              />
+
+              <span
+                className={`absolute left-0 top-[18px] h-[2px] w-7 bg-white transition-all duration-300 ${
+                  menuOpen ? "top-[9px] -rotate-45" : ""
+                }`}
+              />
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* MOBILE MENU */}
@@ -116,7 +174,7 @@ export default function Header() {
         <nav className="px-4 py-2 sm:px-5">
           {navItems.map((item) => (
             <a
-              key={item.label}
+              key={item.href}
               href={item.href}
               onClick={() => setMenuOpen(false)}
               className="flex min-h-[52px] items-center border-b border-white/10 text-[13px] font-semibold tracking-[0.03em] text-white/90 transition hover:text-[#e5b24a]"

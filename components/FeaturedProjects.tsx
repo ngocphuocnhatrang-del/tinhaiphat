@@ -1,40 +1,17 @@
-const projects = [
-  {
-    title: "Nhà phố hiện đại",
-    location: "Nha Trang, Khánh Hòa",
-    type: "Nhà phố",
-    image: "/images/project-1.jpg",
-  },
-  {
-    title: "Biệt thự sân vườn",
-    location: "Diên Khánh, Khánh Hòa",
-    type: "Biệt thự",
-    image: "/images/project-2.jpg",
-  },
-  {
-    title: "Khách sạn The Light",
-    location: "Nha Trang, Khánh Hòa",
-    type: "Khách sạn",
-    image: "/images/project-3.jpg",
-  },
-  {
-    title: "Biệt thự tân cổ điển",
-    location: "Cam Lâm, Khánh Hòa",
-    type: "Biệt thự",
-    image: "/images/project-4.jpg",
-  },
-];
+"use client";
 
-const filters = [
-  "TẤT CẢ",
-  "NHÀ PHỐ",
-  "BIỆT THỰ",
-  "KHÁCH SẠN",
-  "NHÀ HÀNG",
-  "NỘI THẤT",
+import { useLanguage } from "@/components/LanguageProvider";
+
+const projectImages = [
+  "/images/project-1.jpg",
+  "/images/project-2.jpg",
+  "/images/project-3.jpg",
+  "/images/project-4.jpg",
 ];
 
 export default function FeaturedProjects() {
+  const { t } = useLanguage();
+
   return (
     <section
       id="projects"
@@ -43,20 +20,21 @@ export default function FeaturedProjects() {
       <div className="mx-auto max-w-[1440px]">
         <div className="text-center">
           <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.3em] text-[#d7a53a]">
-            Công trình thực tế
+            {t.projects.eyebrow}
           </p>
 
           <h2 className="text-3xl font-extrabold uppercase md:text-4xl">
-            Dự án tiêu biểu
+            {t.projects.title}
           </h2>
 
           <div className="mx-auto mt-5 h-[3px] w-14 bg-[#d7a53a]" />
         </div>
 
         <div className="mt-10 flex flex-wrap justify-center gap-3">
-          {filters.map((filter, index) => (
+          {t.projects.filters.map((filter, index) => (
             <button
               key={filter}
+              type="button"
               className={`px-5 py-2.5 text-[11px] font-bold tracking-[0.06em] transition ${
                 index === 0
                   ? "bg-[#d7a53a] text-[#0b1118]"
@@ -69,14 +47,14 @@ export default function FeaturedProjects() {
         </div>
 
         <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {projects.map((project) => (
+          {t.projects.items.map((project, index) => (
             <article
               key={project.title}
               className="group overflow-hidden border border-white/10 bg-[#111922]"
             >
               <div className="relative h-[330px] overflow-hidden bg-[#1b2530]">
                 <img
-                  src={project.image}
+                  src={projectImages[index]}
                   alt={project.title}
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 />
@@ -101,7 +79,7 @@ export default function FeaturedProjects() {
                   href="#contact"
                   className="mt-5 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#d7a53a]"
                 >
-                  Xem dự án →
+                  {t.projects.viewProject} →
                 </a>
               </div>
             </article>
@@ -113,7 +91,7 @@ export default function FeaturedProjects() {
             href="#contact"
             className="inline-flex items-center gap-3 border border-[#d7a53a] px-7 py-4 text-[12px] font-bold uppercase tracking-[0.05em] text-[#d7a53a] transition hover:bg-[#d7a53a] hover:text-[#0b1118]"
           >
-            Xem tất cả dự án →
+            {t.projects.viewAll} →
           </a>
         </div>
       </div>

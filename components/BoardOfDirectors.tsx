@@ -1,14 +1,18 @@
+"use client";
+
+import { useLanguage } from "@/components/LanguageProvider";
+
 const directors = [
   {
     name: "NGÔ TƯỜNG THỌ",
-    position: "GIÁM ĐỐC ĐIỀU HÀNH",
+    positionKey: "executiveDirector" as const,
     phone: "0943666866",
     displayPhone: "0943 666 866",
     image: "/images/director-1.jpg",
   },
   {
     name: "NGUYỄN MINH ANH",
-    position: "TỔNG GIÁM ĐỐC",
+    positionKey: "generalDirector" as const,
     phone: "0900000002",
     displayPhone: "0900 000 002",
     image: "/images/director-2.jpg",
@@ -16,23 +20,24 @@ const directors = [
 ];
 
 export default function BoardOfDirectors() {
+  const { t } = useLanguage();
+
   return (
     <section className="bg-[#f5f5f3] px-4 py-10 text-[#111820] sm:px-5 lg:px-8 lg:py-12">
       <div className="mx-auto max-w-[1440px]">
         <div className="text-center">
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#c9932e] sm:text-[11px]">
-            Đội ngũ lãnh đạo
+            {t.board.eyebrow}
           </p>
 
           <h2 className="mt-2 text-[26px] font-extrabold uppercase leading-[1.1] md:text-[32px]">
-            Ban Giám Đốc
+            {t.board.title}
           </h2>
 
           <div className="mx-auto mt-3 h-[3px] w-12 bg-[#d7a53a]" />
 
           <p className="mx-auto mt-4 max-w-[620px] text-[12px] leading-5 text-black/55 sm:text-[13px]">
-            Đội ngũ lãnh đạo Tín Hải Phát trực tiếp đồng hành, quản lý và chịu
-            trách nhiệm trong từng dự án.
+            {t.board.description}
           </p>
         </div>
 
@@ -58,7 +63,7 @@ export default function BoardOfDirectors() {
                 </h3>
 
                 <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.13em] text-[#c9932e]">
-                  {director.position}
+                  {t.board.positions[director.positionKey]}
                 </p>
 
                 <a

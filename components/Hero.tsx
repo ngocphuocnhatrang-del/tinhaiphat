@@ -1,4 +1,10 @@
+"use client";
+
+import { useLanguage } from "@/components/LanguageProvider";
+
 export default function Hero() {
+  const { t } = useLanguage();
+
   return (
     <section
       id="home"
@@ -19,25 +25,24 @@ export default function Hero() {
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-72px)] max-w-[1440px] items-start px-4 pb-[235px] pt-20 sm:px-5 sm:pb-[220px] sm:pt-24 lg:min-h-[calc(100vh-76px)] lg:items-center lg:px-8 lg:pb-0 lg:pt-0">
         <div className="max-w-[700px] lg:py-16">
           <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#d7a53a] sm:mb-5 sm:text-sm sm:tracking-[0.28em]">
-            Tín Hải Phát Construction
+            {t.hero.eyebrow}
           </p>
 
           <h1 className="max-w-[360px] text-[32px] font-bold uppercase leading-[1.08] tracking-[-0.015em] text-white sm:max-w-none sm:text-[46px] sm:leading-[1.12] lg:text-[54px]">
-            Kiến tạo
+            {t.hero.line1}
             <br />
-            không gian
+            {t.hero.line2}
             <br />
 
             <span className="text-[#d7a53a]">
-              Xây dựng giá trị
+              {t.hero.line3}
               <br />
-              bền vững
+              {t.hero.line4}
             </span>
           </h1>
 
           <p className="mt-5 max-w-[340px] text-[13px] font-medium leading-6 text-white/85 sm:mt-7 sm:max-w-[620px] sm:text-[16px] sm:leading-8">
-            Chúng tôi kiến tạo nên những công trình bền vững, thẩm mỹ và tối ưu
-            công năng, mang lại giá trị thật cho cuộc sống.
+            {t.hero.description}
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3 sm:mt-9 sm:gap-4">
@@ -45,7 +50,7 @@ export default function Hero() {
               href="#contact"
               className="inline-flex items-center gap-2 bg-[#d7a53a] px-5 py-3 text-[11px] font-bold uppercase text-[#071018] transition hover:bg-[#e8bb58] sm:gap-3 sm:px-7 sm:py-4 sm:text-sm"
             >
-              Nhận báo giá
+              {t.hero.quote}
               <span>→</span>
             </a>
 
@@ -53,7 +58,7 @@ export default function Hero() {
               href="#projects"
               className="inline-flex items-center gap-2 border border-white/60 px-5 py-3 text-[11px] font-bold uppercase text-white transition hover:border-[#d7a53a] hover:text-[#d7a53a] sm:gap-3 sm:px-7 sm:py-4 sm:text-sm"
             >
-              Xem dự án
+              {t.hero.projects}
               <span>→</span>
             </a>
           </div>
@@ -69,7 +74,7 @@ export default function Hero() {
               </div>
 
               <div className="mt-2 text-[9px] font-semibold uppercase leading-4 text-white/75 sm:text-xs">
-                Năm kinh nghiệm
+                {t.hero.experience}
               </div>
             </div>
 
@@ -79,7 +84,7 @@ export default function Hero() {
               </div>
 
               <div className="mt-2 text-[9px] font-semibold uppercase leading-4 text-white/75 sm:text-xs">
-                Công trình hoàn thành
+                {t.hero.completed}
               </div>
             </div>
 
@@ -89,7 +94,7 @@ export default function Hero() {
               </div>
 
               <div className="mt-2 text-[9px] font-semibold uppercase leading-4 text-white/75 sm:text-xs">
-                Kỹ sư & kiến trúc sư
+                {t.hero.engineers}
               </div>
             </div>
 
@@ -99,7 +104,7 @@ export default function Hero() {
               </div>
 
               <div className="mt-2 text-[9px] font-semibold uppercase leading-4 text-white/75 sm:text-xs">
-                Khách hàng tin tưởng
+                {t.hero.customers}
               </div>
             </div>
           </div>
