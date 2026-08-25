@@ -1,16 +1,41 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/components/LanguageProvider";
+import { supabase } from "@/lib/supabase";
 
-const projectImages = [
-  "/images/project-1.jpg",
-  "/images/project-2.jpg",
-  "/images/project-3.jpg",
-  "/images/project-4.jpg",
-];
+type DbProject = {
+  id: number;
+  title_vi: string;
+  title_en: string | null;
+  location_vi: string | null;
+  location_en: string | null;
+  type_vi: string | null;
+  type_en: string | null;
+  description_vi: string | null;
+  description_en: string | null;
+  area: string | null;
+  scale: string | null;
+  image_url: string | null;
+  featured: boolean;
+  published: boolean;
+  sort_order: number;
+  created_at: string;
+};
+
+type DisplayProject = {
+  id: number;
+  title: string;
+  location: string;
+  type: string;
+  description: string;
+  area: string;
+  scale: string;
+  image: string;
+  featured: boolean;
+};
 
 const pageContent = {
   vi: {
@@ -32,57 +57,14 @@ const pageContent = {
       { key: "hotel", label: "KHÁCH SẠN" },
     ],
 
-    projects: [
-      {
-        title: "NHÀ PHỐ HIỆN ĐẠI",
-        location: "Thủ Đức, TP.HCM",
-        type: "NHÀ PHỐ",
-        category: "townhouse",
-        area: "120 m²",
-        scale: "1 trệt + 3 tầng",
-        scope: "Thiết kế & thi công",
-        description:
-          "Không gian hiện đại với mặt tiền thông thoáng, tối ưu ánh sáng tự nhiên và công năng cho gia đình.",
-      },
-      {
-        title: "BIỆT THỰ SÂN VƯỜN",
-        location: "Bình Chánh, TP.HCM",
-        type: "BIỆT THỰ",
-        category: "villa",
-        area: "280 m²",
-        scale: "2 tầng",
-        scope: "Thiết kế & xây dựng",
-        description:
-          "Biệt thự kết hợp kiến trúc hiện đại với sân vườn và không gian mở, tạo sự riêng tư và thoải mái.",
-      },
-      {
-        title: "KHÁCH SẠN THE LIGHT",
-        location: "Quận 7, TP.HCM",
-        type: "KHÁCH SẠN",
-        category: "hotel",
-        area: "650 m²",
-        scale: "8 tầng",
-        scope: "Thi công hoàn thiện",
-        description:
-          "Công trình khách sạn đô thị với thiết kế mặt đứng hiện đại và hệ thống không gian lưu trú tối ưu.",
-      },
-      {
-        title: "BIỆT THỰ TÂN CỔ ĐIỂN",
-        location: "Nhà Bè, TP.HCM",
-        type: "BIỆT THỰ",
-        category: "villa",
-        area: "350 m²",
-        scale: "3 tầng",
-        scope: "Thiết kế & thi công",
-        description:
-          "Kiến trúc tân cổ điển với tỷ lệ cân đối, chi tiết tinh tế và không gian nội thất sang trọng.",
-      },
-    ],
-
     area: "DIỆN TÍCH",
     scale: "QUY MÔ",
     scope: "HẠNG MỤC",
+    scopeDefault: "Thiết kế & thi công",
     viewDetail: "XEM CHI TIẾT",
+
+    loading: "Đang tải dự án...",
+    empty: "Hiện chưa có dự án trong danh mục này.",
 
     capabilityLabel: "NĂNG LỰC TRIỂN KHAI",
     capabilityTitle: "TỪ NHÀ Ở ĐẾN CÔNG TRÌNH THƯƠNG MẠI",
@@ -124,57 +106,14 @@ const pageContent = {
       { key: "hotel", label: "HOTELS" },
     ],
 
-    projects: [
-      {
-        title: "MODERN TOWNHOUSE",
-        location: "Thu Duc, Ho Chi Minh City",
-        type: "TOWNHOUSE",
-        category: "townhouse",
-        area: "120 m²",
-        scale: "Ground floor + 3 floors",
-        scope: "Design & construction",
-        description:
-          "A contemporary urban home designed for natural light, efficient functionality and modern family living.",
-      },
-      {
-        title: "GARDEN VILLA",
-        location: "Binh Chanh, Ho Chi Minh City",
-        type: "VILLA",
-        category: "villa",
-        area: "280 m²",
-        scale: "2 floors",
-        scope: "Design & construction",
-        description:
-          "A modern garden villa combining open living spaces, landscape integration and privacy.",
-      },
-      {
-        title: "THE LIGHT HOTEL",
-        location: "District 7, Ho Chi Minh City",
-        type: "HOTEL",
-        category: "hotel",
-        area: "650 m²",
-        scale: "8 floors",
-        scope: "Finishing works",
-        description:
-          "An urban hotel featuring a contemporary facade and efficient hospitality spaces.",
-      },
-      {
-        title: "NEOCLASSICAL VILLA",
-        location: "Nha Be, Ho Chi Minh City",
-        type: "VILLA",
-        category: "villa",
-        area: "350 m²",
-        scale: "3 floors",
-        scope: "Design & construction",
-        description:
-          "A refined neoclassical residence with balanced proportions, elegant details and luxurious interiors.",
-      },
-    ],
-
     area: "AREA",
     scale: "SCALE",
     scope: "SCOPE",
+    scopeDefault: "Design & construction",
     viewDetail: "VIEW DETAILS",
+
+    loading: "Loading projects...",
+    empty: "There are currently no projects in this category.",
 
     capabilityLabel: "PROJECT CAPABILITIES",
     capabilityTitle: "FROM RESIDENTIAL TO COMMERCIAL PROJECTS",
@@ -203,22 +142,102 @@ export default function ProjectsPage() {
   const content = pageContent[language];
 
   const [activeFilter, setActiveFilter] = useState("all");
+  const [dbProjects, setDbProjects] = useState<DbProject[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      setLoadingProjects(true);
+
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("published", true)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Load projects error:", error);
+        setDbProjects([]);
+        setLoadingProjects(false);
+        return;
+      }
+
+      setDbProjects((data ?? []) as DbProject[]);
+      setLoadingProjects(false);
+    };
+
+    loadProjects();
+  }, []);
+
+  const displayProjects = useMemo<DisplayProject[]>(() => {
+    return dbProjects.map((project) => ({
+      id: project.id,
+
+      title:
+        language === "vi"
+          ? project.title_vi
+          : project.title_en || project.title_vi,
+
+      location:
+        language === "vi"
+          ? project.location_vi || ""
+          : project.location_en || project.location_vi || "",
+
+      type:
+        language === "vi"
+          ? project.type_vi || ""
+          : project.type_en || project.type_vi || "",
+
+      description:
+        language === "vi"
+          ? project.description_vi || ""
+          : project.description_en ||
+            project.description_vi ||
+            "",
+
+      area: project.area || "—",
+      scale: project.scale || "—",
+
+      image:
+        project.image_url || "/images/project-1.jpg",
+
+      featured: project.featured,
+    }));
+  }, [dbProjects, language]);
 
   const projects = useMemo(() => {
     if (activeFilter === "all") {
-      return content.projects.map((project, index) => ({
-        ...project,
-        image: projectImages[index],
-      }));
+      return displayProjects;
     }
 
-    return content.projects
-      .map((project, index) => ({
-        ...project,
-        image: projectImages[index],
-      }))
-      .filter((project) => project.category === activeFilter);
-  }, [activeFilter, content.projects]);
+    return displayProjects.filter((project) => {
+      const type = project.type.toLowerCase();
+
+      if (activeFilter === "townhouse") {
+        return (
+          type.includes("nhà phố") ||
+          type.includes("townhouse")
+        );
+      }
+
+      if (activeFilter === "villa") {
+        return (
+          type.includes("biệt thự") ||
+          type.includes("villa")
+        );
+      }
+
+      if (activeFilter === "hotel") {
+        return (
+          type.includes("khách sạn") ||
+          type.includes("hotel")
+        );
+      }
+
+      return true;
+    });
+  }, [displayProjects, activeFilter]);
 
   return (
     <main className="bg-white">
@@ -294,79 +313,116 @@ export default function ProjectsPage() {
             ))}
           </div>
 
+          {/* LOADING */}
+          {loadingProjects && (
+            <div className="mt-12 text-center">
+              <p className="text-[13px] text-black/45">
+                {content.loading}
+              </p>
+            </div>
+          )}
+
+          {/* EMPTY */}
+          {!loadingProjects && projects.length === 0 && (
+            <div className="mt-12 border border-black/10 bg-white px-6 py-12 text-center">
+              <p className="text-[13px] text-black/45">
+                {content.empty}
+              </p>
+            </div>
+          )}
+
           {/* GRID */}
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
-            {projects.map((project) => (
-              <article
-                key={project.title}
-                className="group overflow-hidden bg-white shadow-[0_10px_35px_rgba(0,0,0,0.05)]"
-              >
-                <div className="relative h-[320px] overflow-hidden sm:h-[380px]">
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                  />
+          {!loadingProjects && projects.length > 0 && (
+            <div className="mt-10 grid gap-6 md:grid-cols-2">
+              {projects.map((project) => (
+                <article
+                  key={project.id}
+                  className="group overflow-hidden bg-white shadow-[0_10px_35px_rgba(0,0,0,0.05)]"
+                >
+                  <div className="relative h-[320px] overflow-hidden sm:h-[380px]">
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                    />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                  <span className="absolute left-5 top-5 bg-[#d7a53a] px-3 py-2 text-[10px] font-extrabold uppercase text-[#0b1118]">
-                    {project.type}
-                  </span>
-                </div>
+                    {project.type && (
+                      <span className="absolute left-5 top-5 bg-[#d7a53a] px-3 py-2 text-[10px] font-extrabold uppercase text-[#0b1118]">
+                        {project.type}
+                      </span>
+                    )}
 
-                <div className="p-6 lg:p-7">
-                  <h3 className="text-[19px] font-extrabold uppercase">
-                    {project.title}
-                  </h3>
-
-                  <p className="mt-2 text-[13px] text-black/45">
-                    {project.location}
-                  </p>
-
-                  <p className="mt-5 text-[13px] leading-7 text-black/55">
-                    {project.description}
-                  </p>
-
-                  <div className="mt-6 grid gap-3 border-t border-black/10 pt-5 sm:grid-cols-3">
-                    <div>
-                      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-black/35">
-                        {content.area}
-                      </p>
-                      <p className="mt-1 text-[12px] font-bold">
-                        {project.area}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-black/35">
-                        {content.scale}
-                      </p>
-                      <p className="mt-1 text-[12px] font-bold">
-                        {project.scale}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-black/35">
-                        {content.scope}
-                      </p>
-                      <p className="mt-1 text-[12px] font-bold">
-                        {project.scope}
-                      </p>
-                    </div>
+                    {project.featured && (
+                      <span className="absolute right-5 top-5 bg-[#0b1118]/90 px-3 py-2 text-[9px] font-extrabold uppercase tracking-[0.05em] text-white">
+                        {language === "vi"
+                          ? "Tiêu biểu"
+                          : "Featured"}
+                      </span>
+                    )}
                   </div>
 
-                  <a
-                    href="/lien-he"
-                    className="mt-6 inline-flex items-center text-[11px] font-extrabold uppercase tracking-[0.07em] text-[#c9932e]"
-                  >
-                    {content.viewDetail} →
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
+                  <div className="p-6 lg:p-7">
+                    <h3 className="text-[19px] font-extrabold uppercase">
+                      {project.title}
+                    </h3>
+
+                    {project.location && (
+                      <p className="mt-2 text-[13px] text-black/45">
+                        {project.location}
+                      </p>
+                    )}
+
+                    {project.description && (
+                      <p className="mt-5 text-[13px] leading-7 text-black/55">
+                        {project.description}
+                      </p>
+                    )}
+
+                    <div className="mt-6 grid gap-3 border-t border-black/10 pt-5 sm:grid-cols-3">
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-black/35">
+                          {content.area}
+                        </p>
+
+                        <p className="mt-1 text-[12px] font-bold">
+                          {project.area}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-black/35">
+                          {content.scale}
+                        </p>
+
+                        <p className="mt-1 text-[12px] font-bold">
+                          {project.scale}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-black/35">
+                          {content.scope}
+                        </p>
+
+                        <p className="mt-1 text-[12px] font-bold">
+                          {content.scopeDefault}
+                        </p>
+                      </div>
+                    </div>
+
+                    <a
+                      href="/lien-he"
+                      className="mt-6 inline-flex items-center text-[11px] font-extrabold uppercase tracking-[0.07em] text-[#c9932e]"
+                    >
+                      {content.viewDetail} →
+                    </a>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

@@ -1,26 +1,90 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { supabase } from "@/lib/supabase";
 
-const directors = [
-  {
-    name: "NGÔ TƯỜNG THỌ",
-    positionKey: "executiveDirector" as const,
-    phone: "0943666866",
-    displayPhone: "0943 666 866",
-    image: "/images/director-1.jpg",
-  },
-  {
-    name: "NGUYỄN MINH ANH",
-    positionKey: "generalDirector" as const,
-    phone: "0900000002",
-    displayPhone: "0900 000 002",
-    image: "/images/director-2.jpg",
-  },
-];
+type Director = {
+  id: number;
+  name_vi: string;
+  name_en: string | null;
+  position_vi: string | null;
+  position_en: string | null;
+  description_vi: string | null;
+  description_en: string | null;
+  image_url: string | null;
+  phone: string | null;
+  display_order: number;
+};
 
 export default function BoardOfDirectors() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+
+  const [directors, setDirectors] = useState<Director[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDirectors = async () => {
+      const { data, error } = await supabase
+        .from("management_team")
+        .select(
+          `
+            id,
+            name_vi,
+            name_en,
+            position_vi,
+            position_en,
+            description_vi,
+            description_en,
+            image_url,
+            phone,
+            display_order
+          `,
+        )
+        .eq("published", true)
+        .order("display_order", {
+          ascending: true,
+        })
+        .order("id", {
+          ascending: true,
+        });
+
+      if (error) {
+        console.error(
+          "Load management team error:",
+          error,
+        );
+
+        setDirectors([]);
+        setLoading(false);
+        return;
+      }
+
+      const sortedDirectors = ((data ?? []) as Director[]).sort(
+  (a, b) =>
+    Number(a.display_order ?? 999) -
+    Number(b.display_order ?? 999)
+);
+
+setDirectors(sortedDirectors);
+      setLoading(false);
+    };
+
+    loadDirectors();
+  }, []);
+
+  const formatPhone = (phone: string) => {
+    const clean = phone.replace(/\D/g, "");
+
+    if (clean.length === 10) {
+      return `${clean.slice(0, 4)} ${clean.slice(
+        4,
+        7,
+      )} ${clean.slice(7)}`;
+    }
+
+    return phone;
+  };
 
   return (
     <section className="bg-[#f5f5f3] px-4 py-10 text-[#111820] sm:px-5 lg:px-8 lg:py-12">
@@ -41,42 +105,116 @@ export default function BoardOfDirectors() {
           </p>
         </div>
 
-        <div className="mx-auto mt-7 grid max-w-[720px] gap-5 md:grid-cols-2">
-          {directors.map((director) => (
-            <article
-              key={director.name}
-              className="group overflow-hidden bg-white shadow-[0_8px_25px_rgba(0,0,0,0.06)]"
-            >
-              <div className="relative h-[240px] overflow-hidden bg-[#d8d8d8] sm:h-[260px] lg:h-[280px]">
-                <img
-                  src={director.image}
-                  alt={director.name}
-                  className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.02]"
-                />
+        {loading && (
+          <div className="py-14 text-center text-[12px] text-black/35">
+            {language === "vi"
+              ? "Đang tải Ban giám đốc..."
+              : "Loading Board of Directors..."}
+          </div>
+        )}
 
-                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
-              </div>
+        {!loading && directors.length === 0 && (
+          <div className="py-14 text-center text-[12px] text-black/35">
+            {language === "vi"
+              ? "Chưa có thông tin Ban giám đốc."
+              : "No management information yet."}
+          </div>
+        )}
 
-              <div className="border-t-[3px] border-[#d7a53a] px-4 py-4 text-center">
-                <h3 className="text-[15px] font-extrabold uppercase tracking-[0.02em]">
-                  {director.name}
-                </h3>
+        {!loading && directors.length > 0 && (
+          <div
+  className={`mx-auto mt-7 grid gap-5 ${
+    directors.length === 1
+      ? "max-w-[360px] grid-cols-1"
+      : directors.length === 2
+        ? "max-w-[720px] grid-cols-1 md:grid-cols-2"
+        : directors.length === 3
+          ? "max-w-[1080px] grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+          : "max-w-[1080px] grid-cols-1 md:grid-cols-2"
+  }`}
+>
+            {directors.map((director) => {
+              const name =
+                language === "en"
+                  ? director.name_en ||
+                    director.name_vi
+                  : director.name_vi;
 
-                <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.13em] text-[#c9932e]">
-                  {t.board.positions[director.positionKey]}
-                </p>
+              const position =
+                language === "en"
+                  ? director.position_en ||
+                    director.position_vi ||
+                    ""
+                  : director.position_vi || "";
 
-                <a
-                  href={`tel:${director.phone}`}
-                  className="mt-3 inline-flex items-center justify-center gap-2 border border-black/10 px-4 py-2 text-[12px] font-bold transition hover:border-[#d7a53a] hover:bg-[#d7a53a]"
+              const description =
+                language === "en"
+                  ? director.description_en ||
+                    director.description_vi ||
+                    ""
+                  : director.description_vi || "";
+
+              return (
+                <article
+                  key={director.id}
+                  className="group overflow-hidden bg-white shadow-[0_8px_25px_rgba(0,0,0,0.06)]"
                 >
-                  <span>☎</span>
-                  <span>{director.displayPhone}</span>
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
+                  <div className="relative h-[240px] overflow-hidden bg-[#d8d8d8] sm:h-[250px] lg:h-[260px]">
+                    {director.image_url ? (
+                      <img
+                        src={director.image_url}
+                        alt={name}
+                        className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.02]"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-[50px] text-black/15">
+                        ♟
+                      </div>
+                    )}
+
+                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
+                  </div>
+
+                  <div className="border-t-[3px] border-[#d7a53a] px-4 py-4 text-center">
+                    <h3 className="text-[15px] font-extrabold uppercase tracking-[0.02em]">
+                      {name}
+                    </h3>
+
+                    {position && (
+                      <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.13em] text-[#c9932e]">
+                        {position}
+                      </p>
+                    )}
+
+                    {description && (
+                      <p className="mx-auto mt-3 max-w-[300px] text-[11px] leading-5 text-black/50">
+                        {description}
+                      </p>
+                    )}
+
+                    {director.phone && (
+                      <a
+                        href={`tel:${director.phone.replace(
+                          /\D/g,
+                          "",
+                        )}`}
+                        className="mt-3 inline-flex items-center justify-center gap-2 border border-black/10 px-4 py-2 text-[12px] font-bold transition hover:border-[#d7a53a] hover:bg-[#d7a53a]"
+                      >
+                        <span>☎</span>
+
+                        <span>
+                          {formatPhone(
+                            director.phone,
+                          )}
+                        </span>
+                      </a>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

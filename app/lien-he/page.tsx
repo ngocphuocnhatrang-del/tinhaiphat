@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/components/LanguageProvider";
+import { supabase } from "@/lib/supabase";
 
 const pageContent = {
   vi: {
@@ -138,7 +140,105 @@ const pageContent = {
 
 export default function ContactPage() {
   const { language } = useLanguage();
-  const content = pageContent[language];
+
+  const content =
+    pageContent[language as keyof typeof pageContent] ??
+    pageContent.vi;
+
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+  const [service, setService] = useState("");
+  const [message, setMessage] = useState("");
+
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  const handleSubmit = async (
+    event: React.SyntheticEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    if (submitting) {
+      return;
+    }
+
+    setSubmitError("");
+    setSubmitSuccess(false);
+
+    if (!fullName.trim()) {
+      setSubmitError(
+        language === "vi"
+          ? "Vui lòng nhập họ và tên."
+          : "Please enter your full name.",
+      );
+      return;
+    }
+
+    if (!phone.trim()) {
+      setSubmitError(
+        language === "vi"
+          ? "Vui lòng nhập số điện thoại."
+          : "Please enter your phone number.",
+      );
+      return;
+    }
+
+    const cleanPhone = phone.replace(/\s+/g, "");
+
+    if (!/^[0-9+]{8,15}$/.test(cleanPhone)) {
+      setSubmitError(
+        language === "vi"
+          ? "Số điện thoại chưa hợp lệ."
+          : "The phone number is not valid.",
+      );
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from("contact_requests")
+        .insert({
+          full_name: fullName.trim(),
+          phone: phone.trim(),
+          location: location.trim() || null,
+          service:
+            service ||
+            content.services[0] ||
+            null,
+          message: message.trim() || null,
+          status: "new",
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      setFullName("");
+      setPhone("");
+      setLocation("");
+      setService("");
+      setMessage("");
+
+      setSubmitSuccess(true);
+    } catch (error) {
+      console.error(
+        "Contact form submit error:",
+        error,
+      );
+
+      setSubmitError(
+        language === "vi"
+          ? "Không thể gửi yêu cầu. Vui lòng thử lại."
+          : "Unable to send your request. Please try again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <main className="bg-white">
@@ -245,7 +345,10 @@ export default function ContactPage() {
               {content.formDescription}
             </p>
 
-            <form className="mt-8 grid gap-5">
+            <form
+              onSubmit={handleSubmit}
+              className="mt-8 grid gap-5"
+            >
               <div>
                 <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.08em] text-black/45">
                   {content.fullName}
@@ -253,7 +356,13 @@ export default function ContactPage() {
 
                 <input
                   type="text"
-                  placeholder={content.fullNamePlaceholder}
+                  value={fullName}
+                  onChange={(e) =>
+                    setFullName(e.target.value)
+                  }
+                  placeholder={
+                    content.fullNamePlaceholder
+                  }
                   className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
                 />
               </div>
@@ -266,7 +375,13 @@ export default function ContactPage() {
 
                   <input
                     type="tel"
-                    placeholder={content.phonePlaceholder}
+                    value={phone}
+                    onChange={(e) =>
+                      setPhone(e.target.value)
+                    }
+                    placeholder={
+                      content.phonePlaceholder
+                    }
                     className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
                   />
                 </div>
@@ -278,7 +393,13 @@ export default function ContactPage() {
 
                   <input
                     type="text"
-                    placeholder={content.locationPlaceholder}
+                    value={location}
+                    onChange={(e) =>
+                      setLocation(e.target.value)
+                    }
+                    placeholder={
+                      content.locationPlaceholder
+                    }
                     className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
                   />
                 </div>
@@ -289,10 +410,26 @@ export default function ContactPage() {
                   {content.service}
                 </label>
 
-                <select className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition focus:border-[#d7a53a]">
-                  {content.services.map((service) => (
-                    <option key={service}>{service}</option>
-                  ))}
+                <select
+                  value={
+                    service ||
+                    content.services[0]
+                  }
+                  onChange={(e) =>
+                    setService(e.target.value)
+                  }
+                  className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition focus:border-[#d7a53a]"
+                >
+                  {content.services.map(
+                    (item) => (
+                      <option
+                        key={item}
+                        value={item}
+                      >
+                        {item}
+                      </option>
+                    ),
+                  )}
                 </select>
               </div>
 
@@ -303,16 +440,41 @@ export default function ContactPage() {
 
                 <textarea
                   rows={5}
-                  placeholder={content.messagePlaceholder}
+                  value={message}
+                  onChange={(e) =>
+                    setMessage(e.target.value)
+                  }
+                  placeholder={
+                    content.messagePlaceholder
+                  }
                   className="w-full resize-none border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] leading-7 outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
                 />
               </div>
 
+              {submitError && (
+                <div className="border border-red-200 bg-red-50 px-4 py-3 text-[12px] font-semibold text-red-700">
+                  {submitError}
+                </div>
+              )}
+
+              {submitSuccess && (
+                <div className="border border-green-200 bg-green-50 px-4 py-3 text-[12px] font-semibold leading-6 text-green-700">
+                  {language === "vi"
+                    ? "✓ Gửi yêu cầu thành công. Tín Hải Phát sẽ liên hệ với bạn trong thời gian sớm nhất."
+                    : "✓ Your request has been sent successfully. Tin Hai Phat will contact you shortly."}
+                </div>
+              )}
+
               <button
                 type="submit"
-                className="mt-2 inline-flex w-full items-center justify-center bg-[#d7a53a] px-7 py-4 text-[12px] font-extrabold uppercase tracking-[0.06em] text-[#111820] transition hover:bg-[#e6b64d]"
+                disabled={submitting}
+                className="mt-2 inline-flex w-full items-center justify-center bg-[#d7a53a] px-7 py-4 text-[12px] font-extrabold uppercase tracking-[0.06em] text-[#111820] transition hover:bg-[#e6b64d] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {content.submit} →
+                {submitting
+                  ? language === "vi"
+                    ? "ĐANG GỬI..."
+                    : "SENDING..."
+                  : `${content.submit} →`}
               </button>
             </form>
 
@@ -365,20 +527,25 @@ export default function ContactPage() {
           </div>
 
           <div className="mt-12 grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
-            {content.processItems.map((item, index) => (
-              <div
-                key={item}
-                className="flex min-h-[100px] items-center gap-5 bg-[#101923] px-6 py-5"
-              >
-                <span className="text-[11px] font-extrabold text-[#d7a53a]">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
+            {content.processItems.map(
+              (item, index) => (
+                <div
+                  key={item}
+                  className="flex min-h-[100px] items-center gap-5 bg-[#101923] px-6 py-5"
+                >
+                  <span className="text-[11px] font-extrabold text-[#d7a53a]">
+                    {String(index + 1).padStart(
+                      2,
+                      "0",
+                    )}
+                  </span>
 
-                <span className="text-[13px] font-extrabold uppercase">
-                  {item}
-                </span>
-              </div>
-            ))}
+                  <span className="text-[13px] font-extrabold uppercase">
+                    {item}
+                  </span>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </section>

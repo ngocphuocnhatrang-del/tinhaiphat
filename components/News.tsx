@@ -1,16 +1,97 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { supabase } from "@/lib/supabase";
 
-const articleImages = [
-  "/images/news-1.jpg",
-  "/images/news-2.jpg",
-  "/images/news-3.jpg",
-  "/images/news-4.jpg",
-];
+type NewsItem = {
+  id: number;
+  title_vi: string;
+  title_en: string | null;
+  slug: string;
+  excerpt_vi: string | null;
+  excerpt_en: string | null;
+  image_url: string | null;
+  published: boolean;
+  published_at: string | null;
+};
+
+type DisplayArticle = {
+  id: number;
+  title: string;
+  excerpt: string;
+  slug: string;
+  image: string;
+};
 
 export default function News() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+
+  const [items, setItems] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadNews = async () => {
+      setLoading(true);
+
+      const { data, error } = await supabase
+        .from("news")
+        .select(
+          `
+            id,
+            title_vi,
+            title_en,
+            slug,
+            excerpt_vi,
+            excerpt_en,
+            image_url,
+            published,
+            published_at
+          `,
+        )
+        .eq("published", true)
+        .order("published_at", {
+          ascending: false,
+        })
+        .limit(4);
+
+      if (error) {
+        console.error("Load home news error:", error);
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
+      setItems((data ?? []) as NewsItem[]);
+      setLoading(false);
+    };
+
+    loadNews();
+  }, []);
+
+  const articles = useMemo<DisplayArticle[]>(() => {
+    return items.map((article) => ({
+      id: article.id,
+
+      title:
+        language === "en"
+          ? article.title_en || article.title_vi
+          : article.title_vi,
+
+      excerpt:
+        language === "en"
+          ? article.excerpt_en ||
+            article.excerpt_vi ||
+            ""
+          : article.excerpt_vi || "",
+
+      slug: article.slug,
+
+      image:
+        article.image_url ||
+        "/images/news-1.jpg",
+    }));
+  }, [items, language]);
 
   return (
     <section
@@ -37,47 +118,73 @@ export default function News() {
           </p>
         </div>
 
+        {/* LOADING */}
+        {loading && (
+          <div className="py-16 text-center">
+            <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-black/35">
+              {language === "vi"
+                ? "Đang tải bài viết..."
+                : "Loading articles..."}
+            </p>
+          </div>
+        )}
+
+        {/* EMPTY */}
+        {!loading && articles.length === 0 && (
+          <div className="mt-12 border border-black/10 bg-white px-6 py-12 text-center">
+            <p className="text-[13px] text-black/45">
+              {language === "vi"
+                ? "Chưa có bài viết nào."
+                : "No articles yet."}
+            </p>
+          </div>
+        )}
+
         {/* ARTICLES */}
-        <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {t.news.items.map((article, index) => (
-            <article
-              key={article.title}
-              className="group overflow-hidden border border-black/[0.06] bg-white shadow-[0_10px_35px_rgba(0,0,0,0.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(0,0,0,0.10)]"
-            >
-              {/* IMAGE */}
-              <div className="relative h-[240px] overflow-hidden bg-[#d9d9d9]">
-                <img
-                  src={articleImages[index]}
-                  alt={article.title}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                />
-              </div>
+        {!loading && articles.length > 0 && (
+          <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {articles.map((article) => (
+              <article
+                key={article.id}
+                className="group overflow-hidden border border-black/[0.06] bg-white shadow-[0_10px_35px_rgba(0,0,0,0.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(0,0,0,0.10)]"
+              >
+                {/* IMAGE */}
+                <div className="relative h-[240px] overflow-hidden bg-[#d9d9d9]">
+                  <img
+                    src={article.image}
+                    alt={article.title}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+                </div>
 
-              {/* CONTENT */}
-              <div className="flex min-h-[290px] flex-col p-6">
-                <h3 className="text-[16px] font-extrabold leading-7">
-                  {article.title}
-                </h3>
+                {/* CONTENT */}
+                <div className="flex min-h-[290px] flex-col p-6">
+                  <h3 className="text-[16px] font-extrabold leading-7">
+                    {article.title}
+                  </h3>
 
-                <p className="mt-4 text-[13px] leading-7 text-black/55">
-                  {article.excerpt}
-                </p>
+                  {article.excerpt && (
+                    <p className="mt-4 text-[13px] leading-7 text-black/55">
+                      {article.excerpt}
+                    </p>
+                  )}
 
-                <a
-                  href="#contact"
-                  className="mt-auto pt-6 text-[11px] font-extrabold uppercase tracking-[0.07em] text-[#c9932e]"
-                >
-                  {t.news.readMore} →
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
+                  <a
+                    href={`/tin-tuc/${article.slug}`}
+                    className="mt-auto pt-6 text-[11px] font-extrabold uppercase tracking-[0.07em] text-[#c9932e]"
+                  >
+                    {t.news.readMore} →
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
 
         {/* VIEW ALL */}
         <div className="mt-10 text-center">
           <a
-            href="#news"
+            href="/tin-tuc"
             className="inline-flex items-center border border-[#111820] px-7 py-4 text-[12px] font-extrabold uppercase tracking-[0.06em] transition hover:border-[#d7a53a] hover:bg-[#d7a53a]"
           >
             {t.news.viewAll} →

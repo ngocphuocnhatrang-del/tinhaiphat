@@ -1,8 +1,67 @@
 "use client";
 
 import { useLanguage } from "@/components/LanguageProvider";
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function Contact() {
+    const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+  const [service, setService] = useState("Xây nhà trọn gói");
+  const [message, setMessage] = useState("");
+
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (
+    e: React.SyntheticEvent<HTMLFormElement>,
+  ) => {
+    e.preventDefault();
+
+    setSuccess(false);
+    setError("");
+
+    if (!fullName.trim() || !phone.trim()) {
+      setError("Vui lòng nhập họ tên và số điện thoại.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      const { error: submitError } = await supabase
+        .from("contact_requests")
+        .insert({
+          full_name: fullName.trim(),
+          phone: phone.trim(),
+          location: location.trim(),
+          service,
+          message: message.trim(),
+        });
+
+      if (submitError) {
+        throw submitError;
+      }
+
+      setSuccess(true);
+
+      setFullName("");
+      setPhone("");
+      setLocation("");
+      setService("Xây nhà trọn gói");
+      setMessage("");
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        "Không thể gửi yêu cầu lúc này. Vui lòng thử lại sau.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
   const { t } = useLanguage();
 
   return (
@@ -86,17 +145,22 @@ export default function Contact() {
               {t.contact.quoteDescription}
             </p>
 
-            <form className="mt-8 grid gap-5">
+            <form
+  onSubmit={handleSubmit}
+  className="mt-8 grid gap-5"
+>
               <div>
                 <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.08em] text-black/45">
                   {t.contact.fullName}
                 </label>
 
                 <input
-                  type="text"
-                  placeholder={t.contact.fullNamePlaceholder}
-                  className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
-                />
+  type="text"
+  value={fullName}
+  onChange={(e) => setFullName(e.target.value)}
+  placeholder={t.contact.fullNamePlaceholder}
+  className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
+/>
               </div>
 
               <div className="grid gap-5 md:grid-cols-2">
@@ -106,10 +170,12 @@ export default function Contact() {
                   </label>
 
                   <input
-                    type="tel"
-                    placeholder={t.contact.phonePlaceholder}
-                    className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
-                  />
+  type="tel"
+  value={phone}
+  onChange={(e) => setPhone(e.target.value)}
+  placeholder={t.contact.phonePlaceholder}
+  className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
+/>
                 </div>
 
                 <div>
@@ -118,10 +184,12 @@ export default function Contact() {
                   </label>
 
                   <input
-                    type="text"
-                    placeholder={t.contact.locationPlaceholder}
-                    className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
-                  />
+  type="text"
+  value={location}
+  onChange={(e) => setLocation(e.target.value)}
+  placeholder={t.contact.locationPlaceholder}
+  className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
+/>
                 </div>
               </div>
 
@@ -130,11 +198,15 @@ export default function Contact() {
                   {t.contact.need}
                 </label>
 
-                <select className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition focus:border-[#d7a53a]">
-                  {t.contact.services.map((service) => (
-                    <option key={service}>{service}</option>
-                  ))}
-                </select>
+                <select
+  value={service}
+  onChange={(e) => setService(e.target.value)}
+  className="w-full border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] outline-none transition focus:border-[#d7a53a]"
+>
+  {t.contact.services.map((item) => (
+    <option key={item}>{item}</option>
+  ))}
+</select>
               </div>
 
               <div>
@@ -142,19 +214,36 @@ export default function Contact() {
                   {t.contact.message}
                 </label>
 
-                <textarea
-                  rows={5}
-                  placeholder={t.contact.messagePlaceholder}
-                  className="w-full resize-none border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] leading-7 outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
-                />
+                
               </div>
 
-              <button
-                type="submit"
-                className="mt-2 inline-flex w-full items-center justify-center bg-[#d7a53a] px-7 py-4 text-[12px] font-extrabold uppercase tracking-[0.06em] text-[#111820] transition hover:bg-[#e6b64d]"
-              >
-                {t.contact.submit} →
-              </button>
+              <textarea
+  rows={5}
+  value={message}
+  onChange={(e) => setMessage(e.target.value)}
+  placeholder={t.contact.messagePlaceholder}
+  className="w-full resize-none border border-black/10 bg-[#f7f7f5] px-4 py-4 text-[14px] leading-7 outline-none transition placeholder:text-black/30 focus:border-[#d7a53a]"
+/>
+
+<button
+  type="submit"
+  disabled={submitting}
+  className="mt-2 inline-flex w-full items-center justify-center bg-[#d7a53a] px-7 py-4 text-[12px] font-extrabold uppercase tracking-[0.06em] text-[#111820] transition hover:bg-[#e6b64d] disabled:cursor-not-allowed disabled:opacity-60"
+>
+  {submitting ? "ĐANG GỬI..." : `${t.contact.submit} →`}
+</button>
+
+{success && (
+  <p className="text-[13px] font-semibold text-green-700">
+    ✓ Gửi yêu cầu thành công. Tín Hải Phát sẽ liên hệ với bạn sớm.
+  </p>
+)}
+
+{error && (
+  <p className="text-[13px] font-semibold text-red-600">
+    {error}
+  </p>
+)}
             </form>
 
             <p className="mt-5 text-[11px] leading-5 text-black/35">
