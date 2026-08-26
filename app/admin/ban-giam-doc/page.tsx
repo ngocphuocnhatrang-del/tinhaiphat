@@ -13,6 +13,7 @@ type Member = {
   description_vi: string | null;
   description_en: string | null;
   image_url: string | null;
+  phone: string | null;
   display_order: number;
   published: boolean;
 };
@@ -24,6 +25,7 @@ type FormData = {
   position_en: string;
   description_vi: string;
   description_en: string;
+  phone: string;
   display_order: number;
   published: boolean;
 };
@@ -35,6 +37,7 @@ const initialForm: FormData = {
   position_en: "",
   description_vi: "",
   description_en: "",
+  phone: "",
   display_order: 1,
   published: true,
 };
@@ -51,9 +54,12 @@ export default function AdminManagementPage() {
 
   const [form, setForm] = useState<FormData>(initialForm);
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] =
+    useState<File | null>(null);
+
   const [previewUrl, setPreviewUrl] = useState("");
-  const [currentImageUrl, setCurrentImageUrl] = useState("");
+  const [currentImageUrl, setCurrentImageUrl] =
+    useState("");
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -91,12 +97,20 @@ export default function AdminManagementPage() {
     const { data, error: loadError } = await supabase
       .from("management_team")
       .select("*")
-      .order("display_order", { ascending: true })
-      .order("id", { ascending: true });
+      .order("display_order", {
+        ascending: true,
+      })
+      .order("id", {
+        ascending: true,
+      });
 
     if (loadError) {
       console.error(loadError);
-      setError("Không thể tải danh sách Ban giám đốc.");
+
+      setError(
+        "Không thể tải danh sách Ban giám đốc.",
+      );
+
       setLoading(false);
       return;
     }
@@ -144,14 +158,23 @@ export default function AdminManagementPage() {
       name_en: member.name_en || "",
       position_vi: member.position_vi || "",
       position_en: member.position_en || "",
-      description_vi: member.description_vi || "",
-      description_en: member.description_en || "",
-      display_order: member.display_order ?? 1,
+      description_vi:
+        member.description_vi || "",
+      description_en:
+        member.description_en || "",
+      phone: member.phone || "",
+      display_order:
+        member.display_order ?? 1,
       published: member.published,
     });
 
-    setCurrentImageUrl(member.image_url || "");
-    setPreviewUrl(member.image_url || "");
+    setCurrentImageUrl(
+      member.image_url || "",
+    );
+
+    setPreviewUrl(
+      member.image_url || "",
+    );
 
     setError("");
     setSuccess("");
@@ -165,30 +188,44 @@ export default function AdminManagementPage() {
   const handleImageChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const file = event.target.files?.[0];
+    const file =
+      event.target.files?.[0];
 
     if (!file) {
       return;
     }
 
     if (!file.type.startsWith("image/")) {
-      setError("Vui lòng chọn đúng file hình ảnh.");
+      setError(
+        "Vui lòng chọn đúng file hình ảnh.",
+      );
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize =
+      5 * 1024 * 1024;
 
     if (file.size > maxSize) {
-      setError("Ảnh tối đa 5MB.");
+      setError(
+        "Ảnh tối đa 5MB.",
+      );
       return;
     }
 
-    if (previewUrl.startsWith("blob:")) {
-      URL.revokeObjectURL(previewUrl);
+    if (
+      previewUrl.startsWith("blob:")
+    ) {
+      URL.revokeObjectURL(
+        previewUrl,
+      );
     }
 
     setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
+
+    setPreviewUrl(
+      URL.createObjectURL(file),
+    );
+
     setError("");
   };
 
@@ -198,65 +235,95 @@ export default function AdminManagementPage() {
     }
 
     const extension =
-      selectedFile.name.split(".").pop()?.toLowerCase() || "jpg";
+      selectedFile.name
+        .split(".")
+        .pop()
+        ?.toLowerCase() || "jpg";
 
-    const safeExtension = extension.replace(/[^a-z0-9]/g, "") || "jpg";
+    const safeExtension =
+      extension.replace(
+        /[^a-z0-9]/g,
+        "",
+      ) || "jpg";
 
-    const filePath = `directors/${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2)}.${safeExtension}`;
+    const filePath =
+      `directors/${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}.${safeExtension}`;
 
-    const { error: uploadError } = await supabase.storage
+    const {
+      error: uploadError,
+    } = await supabase.storage
       .from("management")
-      .upload(filePath, selectedFile, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+      .upload(
+        filePath,
+        selectedFile,
+        {
+          cacheControl: "3600",
+          upsert: false,
+        },
+      );
 
     if (uploadError) {
       throw uploadError;
     }
 
-    const { data } = supabase.storage
-      .from("management")
-      .getPublicUrl(filePath);
+    const { data } =
+      supabase.storage
+        .from("management")
+        .getPublicUrl(filePath);
 
     return data.publicUrl;
   };
 
-  const getStoragePath = (publicUrl: string) => {
-    const marker = "/storage/v1/object/public/management/";
+  const getStoragePath = (
+    publicUrl: string,
+  ) => {
+    const marker =
+      "/storage/v1/object/public/management/";
 
-    const index = publicUrl.indexOf(marker);
+    const index =
+      publicUrl.indexOf(marker);
 
     if (index === -1) {
       return null;
     }
 
     return decodeURIComponent(
-      publicUrl.substring(index + marker.length),
+      publicUrl.substring(
+        index + marker.length,
+      ),
     );
   };
 
-  const deleteStorageImage = async (imageUrl: string | null) => {
-    if (!imageUrl) {
-      return;
-    }
+  const deleteStorageImage =
+    async (
+      imageUrl: string | null,
+    ) => {
+      if (!imageUrl) {
+        return;
+      }
 
-    const path = getStoragePath(imageUrl);
+      const path =
+        getStoragePath(imageUrl);
 
-    if (!path) {
-      return;
-    }
+      if (!path) {
+        return;
+      }
 
-    const { error: removeError } = await supabase.storage
-      .from("management")
-      .remove([path]);
+      const {
+        error: removeError,
+      } = await supabase.storage
+        .from("management")
+        .remove([path]);
 
-    if (removeError) {
-      console.error("Delete management image:", removeError);
-    }
-  };
+      if (removeError) {
+        console.error(
+          "Delete management image:",
+          removeError,
+        );
+      }
+    };
 
   const handleSubmit = async (
     event: React.SyntheticEvent<HTMLFormElement>,
@@ -267,35 +334,75 @@ export default function AdminManagementPage() {
     setSuccess("");
 
     if (!form.name_vi.trim()) {
-      setError("Vui lòng nhập họ tên.");
+      setError(
+        "Vui lòng nhập họ tên.",
+      );
       return;
     }
 
     setSaving(true);
 
-    let uploadedImageUrl: string | null = null;
+    let uploadedImageUrl:
+      | string
+      | null = null;
 
     try {
-      uploadedImageUrl = await uploadImage();
+      uploadedImageUrl =
+        await uploadImage();
 
       const payload = {
-        name_vi: form.name_vi.trim(),
-        name_en: form.name_en.trim() || null,
-        position_vi: form.position_vi.trim() || null,
-        position_en: form.position_en.trim() || null,
-        description_vi: form.description_vi.trim() || null,
-        description_en: form.description_en.trim() || null,
-        image_url: uploadedImageUrl,
-        display_order: Number(form.display_order) || 0,
-        published: form.published,
-        updated_at: new Date().toISOString(),
+        name_vi:
+          form.name_vi.trim(),
+
+        name_en:
+          form.name_en.trim() ||
+          null,
+
+        position_vi:
+          form.position_vi.trim() ||
+          null,
+
+        position_en:
+          form.position_en.trim() ||
+          null,
+
+        description_vi:
+          form.description_vi.trim() ||
+          null,
+
+        description_en:
+          form.description_en.trim() ||
+          null,
+
+        phone:
+          form.phone.trim() ||
+          null,
+
+        image_url:
+          uploadedImageUrl,
+
+        display_order:
+          Number(
+            form.display_order,
+          ) || 0,
+
+        published:
+          form.published,
+
+        updated_at:
+          new Date().toISOString(),
       };
 
       if (editingId) {
-        const { error: updateError } = await supabase
+        const {
+          error: updateError,
+        } = await supabase
           .from("management_team")
           .update(payload)
-          .eq("id", editingId);
+          .eq(
+            "id",
+            editingId,
+          );
 
         if (updateError) {
           throw updateError;
@@ -304,26 +411,40 @@ export default function AdminManagementPage() {
         if (
           selectedFile &&
           currentImageUrl &&
-          uploadedImageUrl !== currentImageUrl
+          uploadedImageUrl !==
+            currentImageUrl
         ) {
-          await deleteStorageImage(currentImageUrl);
+          await deleteStorageImage(
+            currentImageUrl,
+          );
         }
 
-        setSuccess("Đã cập nhật thành viên.");
+        setSuccess(
+          "Đã cập nhật thành viên.",
+        );
       } else {
-        const { error: insertError } = await supabase
+        const {
+          error: insertError,
+        } = await supabase
           .from("management_team")
           .insert(payload);
 
         if (insertError) {
-          if (selectedFile && uploadedImageUrl) {
-            await deleteStorageImage(uploadedImageUrl);
+          if (
+            selectedFile &&
+            uploadedImageUrl
+          ) {
+            await deleteStorageImage(
+              uploadedImageUrl,
+            );
           }
 
           throw insertError;
         }
 
-        setSuccess("Đã thêm thành viên.");
+        setSuccess(
+          "Đã thêm thành viên.",
+        );
       }
 
       clearPreview();
@@ -343,20 +464,36 @@ export default function AdminManagementPage() {
     }
   };
 
-  const togglePublished = async (member: Member) => {
+  const togglePublished = async (
+    member: Member,
+  ) => {
     setError("");
 
-    const { error: updateError } = await supabase
+    const {
+      error: updateError,
+    } = await supabase
       .from("management_team")
       .update({
-        published: !member.published,
-        updated_at: new Date().toISOString(),
+        published:
+          !member.published,
+
+        updated_at:
+          new Date().toISOString(),
       })
-      .eq("id", member.id);
+      .eq(
+        "id",
+        member.id,
+      );
 
     if (updateError) {
-      console.error(updateError);
-      setError("Không thể cập nhật trạng thái.");
+      console.error(
+        updateError,
+      );
+
+      setError(
+        "Không thể cập nhật trạng thái.",
+      );
+
       return;
     }
 
@@ -365,17 +502,21 @@ export default function AdminManagementPage() {
         item.id === member.id
           ? {
               ...item,
-              published: !item.published,
+              published:
+                !item.published,
             }
           : item,
       ),
     );
   };
 
-  const deleteMember = async (member: Member) => {
-    const confirmed = window.confirm(
-      `Bạn có chắc muốn xóa "${member.name_vi}"?`,
-    );
+  const deleteMember = async (
+    member: Member,
+  ) => {
+    const confirmed =
+      window.confirm(
+        `Bạn có chắc muốn xóa "${member.name_vi}"?`,
+      );
 
     if (!confirmed) {
       return;
@@ -383,24 +524,42 @@ export default function AdminManagementPage() {
 
     setError("");
 
-    const { error: deleteError } = await supabase
+    const {
+      error: deleteError,
+    } = await supabase
       .from("management_team")
       .delete()
-      .eq("id", member.id);
+      .eq(
+        "id",
+        member.id,
+      );
 
     if (deleteError) {
-      console.error(deleteError);
-      setError("Không thể xóa thành viên.");
+      console.error(
+        deleteError,
+      );
+
+      setError(
+        "Không thể xóa thành viên.",
+      );
+
       return;
     }
 
-    await deleteStorageImage(member.image_url);
-
-    setMembers((current) =>
-      current.filter((item) => item.id !== member.id),
+    await deleteStorageImage(
+      member.image_url,
     );
 
-    if (editingId === member.id) {
+    setMembers((current) =>
+      current.filter(
+        (item) =>
+          item.id !== member.id,
+      ),
+    );
+
+    if (
+      editingId === member.id
+    ) {
       resetForm();
     }
   };
@@ -461,7 +620,9 @@ export default function AdminManagementPage() {
 
           {/* FORM */}
           <form
-            onSubmit={handleSubmit}
+            onSubmit={
+              handleSubmit
+            }
             className="mt-7 border border-black/10 bg-white p-5"
           >
             <div className="flex items-center justify-between">
@@ -474,7 +635,9 @@ export default function AdminManagementPage() {
               {editingId && (
                 <button
                   type="button"
-                  onClick={resetForm}
+                  onClick={
+                    resetForm
+                  }
                   className="text-[10px] font-bold uppercase text-black/40"
                 >
                   Hủy sửa
@@ -484,74 +647,144 @@ export default function AdminManagementPage() {
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <div>
-                <label className={labelClass}>
+                <label
+                  className={
+                    labelClass
+                  }
+                >
                   Họ tên tiếng Việt *
                 </label>
 
                 <input
-                  value={form.name_vi}
-                  onChange={(e) =>
-                    updateField("name_vi", e.target.value)
+                  value={
+                    form.name_vi
                   }
-                  className={inputClass}
+                  onChange={(e) =>
+                    updateField(
+                      "name_vi",
+                      e.target.value,
+                    )
+                  }
+                  className={
+                    inputClass
+                  }
                   placeholder="Nguyễn Văn A"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>
+                <label
+                  className={
+                    labelClass
+                  }
+                >
                   Họ tên tiếng Anh
                 </label>
 
                 <input
-                  value={form.name_en}
-                  onChange={(e) =>
-                    updateField("name_en", e.target.value)
+                  value={
+                    form.name_en
                   }
-                  className={inputClass}
+                  onChange={(e) =>
+                    updateField(
+                      "name_en",
+                      e.target.value,
+                    )
+                  }
+                  className={
+                    inputClass
+                  }
                   placeholder="Nguyen Van A"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>
+                <label
+                  className={
+                    labelClass
+                  }
+                >
                   Chức vụ tiếng Việt
                 </label>
 
                 <input
-                  value={form.position_vi}
+                  value={
+                    form.position_vi
+                  }
                   onChange={(e) =>
                     updateField(
                       "position_vi",
                       e.target.value,
                     )
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                   placeholder="Giám đốc"
                 />
               </div>
 
               <div>
-                <label className={labelClass}>
+                <label
+                  className={
+                    labelClass
+                  }
+                >
                   Chức vụ tiếng Anh
                 </label>
 
                 <input
-                  value={form.position_en}
+                  value={
+                    form.position_en
+                  }
                   onChange={(e) =>
                     updateField(
                       "position_en",
                       e.target.value,
                     )
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                   placeholder="Director"
+                />
+              </div>
+
+              {/* PHONE */}
+              <div className="md:col-span-2">
+                <label
+                  className={
+                    labelClass
+                  }
+                >
+                  Số điện thoại
+                </label>
+
+                <input
+                  type="tel"
+                  value={
+                    form.phone
+                  }
+                  onChange={(e) =>
+                    updateField(
+                      "phone",
+                      e.target.value,
+                    )
+                  }
+                  className={
+                    inputClass
+                  }
+                  placeholder="0943 666 866"
                 />
               </div>
 
               {/* IMAGE */}
               <div className="md:col-span-2">
-                <label className={labelClass}>
+                <label
+                  className={
+                    labelClass
+                  }
+                >
                   Hình ảnh
                 </label>
 
@@ -559,9 +792,11 @@ export default function AdminManagementPage() {
                   <div className="flex min-h-[260px] items-center justify-center overflow-hidden border border-dashed border-black/20 bg-[#f7f7f5]">
                     {previewUrl ? (
                       <img
-                        src={previewUrl}
+                        src={
+                          previewUrl
+                        }
                         alt="Preview"
-                        className="h-[260px] w-full object-cover"
+                        className="h-[260px] w-full object-cover object-top"
                       />
                     ) : (
                       <div className="px-5 text-center">
@@ -585,7 +820,9 @@ export default function AdminManagementPage() {
                       id="management-image"
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
-                      onChange={handleImageChange}
+                      onChange={
+                        handleImageChange
+                      }
                       className="hidden"
                     />
 
@@ -597,13 +834,14 @@ export default function AdminManagementPage() {
                     </label>
 
                     <p className="mt-3 text-[10px] leading-5 text-black/40">
-                      Ảnh sẽ tự upload lên Supabase khi bấm lưu.
-                      Dung lượng tối đa 5MB.
+                      Ảnh sẽ tự upload lên Supabase khi bấm lưu. Dung lượng tối đa 5MB.
                     </p>
 
                     {selectedFile && (
                       <p className="mt-3 text-[11px] font-semibold text-[#c9932e]">
-                        {selectedFile.name}
+                        {
+                          selectedFile.name
+                        }
                       </p>
                     )}
                   </div>
@@ -611,13 +849,19 @@ export default function AdminManagementPage() {
               </div>
 
               <div>
-                <label className={labelClass}>
+                <label
+                  className={
+                    labelClass
+                  }
+                >
                   Giới thiệu tiếng Việt
                 </label>
 
                 <textarea
                   rows={5}
-                  value={form.description_vi}
+                  value={
+                    form.description_vi
+                  }
                   onChange={(e) =>
                     updateField(
                       "description_vi",
@@ -629,13 +873,19 @@ export default function AdminManagementPage() {
               </div>
 
               <div>
-                <label className={labelClass}>
+                <label
+                  className={
+                    labelClass
+                  }
+                >
                   Giới thiệu tiếng Anh
                 </label>
 
                 <textarea
                   rows={5}
-                  value={form.description_en}
+                  value={
+                    form.description_en
+                  }
                   onChange={(e) =>
                     updateField(
                       "description_en",
@@ -647,21 +897,31 @@ export default function AdminManagementPage() {
               </div>
 
               <div>
-                <label className={labelClass}>
+                <label
+                  className={
+                    labelClass
+                  }
+                >
                   Thứ tự hiển thị
                 </label>
 
                 <input
                   type="number"
                   min={0}
-                  value={form.display_order}
+                  value={
+                    form.display_order
+                  }
                   onChange={(e) =>
                     updateField(
                       "display_order",
-                      Number(e.target.value),
+                      Number(
+                        e.target.value,
+                      ),
                     )
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </div>
 
@@ -669,7 +929,9 @@ export default function AdminManagementPage() {
                 <label className="flex cursor-pointer items-center gap-3 pb-3">
                   <input
                     type="checkbox"
-                    checked={form.published}
+                    checked={
+                      form.published
+                    }
                     onChange={(e) =>
                       updateField(
                         "published",
@@ -701,7 +963,9 @@ export default function AdminManagementPage() {
             <div className="mt-5 flex justify-end">
               <button
                 type="submit"
-                disabled={saving}
+                disabled={
+                  saving
+                }
                 className="bg-[#d7a53a] px-7 py-3 text-[10px] font-extrabold uppercase tracking-[0.05em] transition hover:bg-[#e6b64d] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {saving
@@ -721,7 +985,10 @@ export default function AdminManagementPage() {
               </h2>
 
               <span className="text-[11px] text-black/40">
-                {members.length} thành viên
+                {
+                  members.length
+                }{" "}
+                thành viên
               </span>
             </div>
 
@@ -729,97 +996,128 @@ export default function AdminManagementPage() {
               <div className="p-10 text-center text-[12px] text-black/40">
                 Đang tải...
               </div>
-            ) : members.length === 0 ? (
+            ) : members.length ===
+              0 ? (
               <div className="p-10 text-center text-[12px] text-black/40">
                 Chưa có thành viên nào.
               </div>
             ) : (
-              members.map((member) => (
-                <div
-                  key={member.id}
-                  className="grid gap-4 border-t border-black/[0.06] p-5 first:border-t-0 md:grid-cols-[90px_1fr_auto] md:items-center"
-                >
-                  <div className="h-[90px] w-[90px] overflow-hidden bg-[#ececea]">
-                    {member.image_url ? (
-                      <img
-                        src={member.image_url}
-                        alt={member.name_vi}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-[25px] text-black/20">
-                        ♟
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-[15px] font-extrabold">
-                        {member.name_vi}
-                      </h3>
-
-                      <span
-                        className={`px-2 py-1 text-[8px] font-bold uppercase ${
-                          member.published
-                            ? "bg-green-50 text-green-700"
-                            : "bg-black/5 text-black/35"
-                        }`}
-                      >
-                        {member.published
-                          ? "Đang hiển thị"
-                          : "Đang ẩn"}
-                      </span>
+              members.map(
+                (member) => (
+                  <div
+                    key={
+                      member.id
+                    }
+                    className="grid gap-4 border-t border-black/[0.06] p-5 first:border-t-0 md:grid-cols-[90px_1fr_auto] md:items-center"
+                  >
+                    <div className="h-[90px] w-[90px] overflow-hidden bg-[#ececea]">
+                      {member.image_url ? (
+                        <img
+                          src={
+                            member.image_url
+                          }
+                          alt={
+                            member.name_vi
+                          }
+                          className="h-full w-full object-cover object-top"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-[25px] text-black/20">
+                          ♟
+                        </div>
+                      )}
                     </div>
 
-                    <p className="mt-1 text-[11px] font-bold uppercase text-[#c9932e]">
-                      {member.position_vi ||
-                        "Chưa có chức vụ"}
-                    </p>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-[15px] font-extrabold">
+                          {
+                            member.name_vi
+                          }
+                        </h3>
 
-                    <p className="mt-2 text-[12px] leading-6 text-black/50">
-                      {member.description_vi ||
-                        "Chưa có nội dung giới thiệu."}
-                    </p>
+                        <span
+                          className={`px-2 py-1 text-[8px] font-bold uppercase ${
+                            member.published
+                              ? "bg-green-50 text-green-700"
+                              : "bg-black/5 text-black/35"
+                          }`}
+                        >
+                          {member.published
+                            ? "Đang hiển thị"
+                            : "Đang ẩn"}
+                        </span>
+                      </div>
 
-                    <p className="mt-2 text-[9px] text-black/30">
-                      Thứ tự: {member.display_order}
-                    </p>
+                      <p className="mt-1 text-[11px] font-bold uppercase text-[#c9932e]">
+                        {member.position_vi ||
+                          "Chưa có chức vụ"}
+                      </p>
+
+                      {member.phone && (
+                        <p className="mt-2 text-[11px] font-bold text-black/60">
+                          ☎{" "}
+                          {
+                            member.phone
+                          }
+                        </p>
+                      )}
+
+                      <p className="mt-2 text-[12px] leading-6 text-black/50">
+                        {member.description_vi ||
+                          "Chưa có nội dung giới thiệu."}
+                      </p>
+
+                      <p className="mt-2 text-[9px] text-black/30">
+                        Thứ tự:{" "}
+                        {
+                          member.display_order
+                        }
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 md:justify-end">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          editMember(
+                            member,
+                          )
+                        }
+                        className="border border-black/10 px-3 py-2 text-[9px] font-extrabold uppercase transition hover:border-[#d7a53a]"
+                      >
+                        Sửa
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          togglePublished(
+                            member,
+                          )
+                        }
+                        className="border border-black/10 px-3 py-2 text-[9px] font-extrabold uppercase transition hover:border-[#d7a53a]"
+                      >
+                        {member.published
+                          ? "Ẩn"
+                          : "Hiện"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          deleteMember(
+                            member,
+                          )
+                        }
+                        className="border border-red-200 px-3 py-2 text-[9px] font-extrabold uppercase text-red-600 transition hover:bg-red-50"
+                      >
+                        Xóa
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="flex flex-wrap gap-2 md:justify-end">
-                    <button
-                      type="button"
-                      onClick={() => editMember(member)}
-                      className="border border-black/10 px-3 py-2 text-[9px] font-extrabold uppercase transition hover:border-[#d7a53a]"
-                    >
-                      Sửa
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        togglePublished(member)
-                      }
-                      className="border border-black/10 px-3 py-2 text-[9px] font-extrabold uppercase transition hover:border-[#d7a53a]"
-                    >
-                      {member.published
-                        ? "Ẩn"
-                        : "Hiện"}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        deleteMember(member)
-                      }
-                      className="border border-red-200 px-3 py-2 text-[9px] font-extrabold uppercase text-red-600 transition hover:bg-red-50"
-                    >
-                      Xóa
-                    </button>
-                  </div>
-                </div>
-              ))
+                ),
+              )
             )}
           </section>
         </div>

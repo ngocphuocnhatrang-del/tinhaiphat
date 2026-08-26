@@ -27,20 +27,18 @@ export default function BoardOfDirectors() {
     const loadDirectors = async () => {
       const { data, error } = await supabase
         .from("management_team")
-        .select(
-          `
-            id,
-            name_vi,
-            name_en,
-            position_vi,
-            position_en,
-            description_vi,
-            description_en,
-            image_url,
-            phone,
-            display_order
-          `,
-        )
+        .select(`
+          id,
+          name_vi,
+          name_en,
+          position_vi,
+          position_en,
+          description_vi,
+          description_en,
+          image_url,
+          phone,
+          display_order
+        `)
         .eq("published", true)
         .order("display_order", {
           ascending: true,
@@ -60,13 +58,15 @@ export default function BoardOfDirectors() {
         return;
       }
 
-      const sortedDirectors = ((data ?? []) as Director[]).sort(
-  (a, b) =>
-    Number(a.display_order ?? 999) -
-    Number(b.display_order ?? 999)
-);
+      const sortedDirectors = (
+        (data ?? []) as Director[]
+      ).sort(
+        (a, b) =>
+          Number(a.display_order ?? 999) -
+          Number(b.display_order ?? 999),
+      );
 
-setDirectors(sortedDirectors);
+      setDirectors(sortedDirectors);
       setLoading(false);
     };
 
@@ -89,6 +89,7 @@ setDirectors(sortedDirectors);
   return (
     <section className="bg-[#f5f5f3] px-4 py-10 text-[#111820] sm:px-5 lg:px-8 lg:py-12">
       <div className="mx-auto max-w-[1440px]">
+        {/* TITLE */}
         <div className="text-center">
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#c9932e] sm:text-[11px]">
             {t.board.eyebrow}
@@ -105,6 +106,7 @@ setDirectors(sortedDirectors);
           </p>
         </div>
 
+        {/* LOADING */}
         {loading && (
           <div className="py-14 text-center text-[12px] text-black/35">
             {language === "vi"
@@ -113,6 +115,7 @@ setDirectors(sortedDirectors);
           </div>
         )}
 
+        {/* EMPTY */}
         {!loading && directors.length === 0 && (
           <div className="py-14 text-center text-[12px] text-black/35">
             {language === "vi"
@@ -121,23 +124,23 @@ setDirectors(sortedDirectors);
           </div>
         )}
 
+        {/* DIRECTORS */}
         {!loading && directors.length > 0 && (
           <div
-  className={`mx-auto mt-7 grid gap-5 ${
-    directors.length === 1
-      ? "max-w-[360px] grid-cols-1"
-      : directors.length === 2
-        ? "max-w-[720px] grid-cols-1 md:grid-cols-2"
-        : directors.length === 3
-          ? "max-w-[1080px] grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-          : "max-w-[1080px] grid-cols-1 md:grid-cols-2"
-  }`}
->
+            className={`mx-auto mt-7 grid gap-5 ${
+              directors.length === 1
+                ? "max-w-[540px] grid-cols-1"
+                : directors.length === 2
+                  ? "max-w-[1080px] grid-cols-1 md:grid-cols-2"
+                  : directors.length === 3
+                    ? "max-w-[1080px] grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                    : "max-w-[1080px] grid-cols-1 md:grid-cols-2"
+            }`}
+          >
             {directors.map((director) => {
               const name =
                 language === "en"
-                  ? director.name_en ||
-                    director.name_vi
+                  ? director.name_en || director.name_vi
                   : director.name_vi;
 
               const position =
@@ -159,22 +162,24 @@ setDirectors(sortedDirectors);
                   key={director.id}
                   className="group overflow-hidden bg-white shadow-[0_8px_25px_rgba(0,0,0,0.06)]"
                 >
-                  <div className="relative h-[240px] overflow-hidden bg-[#d8d8d8] sm:h-[250px] lg:h-[260px]">
-                    {director.image_url ? (
-                      <img
-                        src={director.image_url}
-                        alt={name}
-                        className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.02]"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-[50px] text-black/15">
-                        ♟
-                      </div>
-                    )}
+                  {/* IMAGE */}
+<div className="relative aspect-square w-full overflow-hidden bg-[#d8d8d8]">
+  {director.image_url ? (
+    <img
+      src={director.image_url}
+      alt={name}
+      className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.02]"
+    />
+  ) : (
+    <div className="flex h-full items-center justify-center text-[50px] text-black/15">
+      ♟
+    </div>
+  )}
 
-                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
-                  </div>
+  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
+</div>
 
+                  {/* INFO */}
                   <div className="border-t-[3px] border-[#d7a53a] px-4 py-4 text-center">
                     <h3 className="text-[15px] font-extrabold uppercase tracking-[0.02em]">
                       {name}
@@ -203,9 +208,7 @@ setDirectors(sortedDirectors);
                         <span>☎</span>
 
                         <span>
-                          {formatPhone(
-                            director.phone,
-                          )}
+                          {formatPhone(director.phone)}
                         </span>
                       </a>
                     )}
