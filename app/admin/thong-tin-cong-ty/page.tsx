@@ -8,6 +8,7 @@ type CompanySettings = {
   id: number;
   company_name: string;
   company_slogan: string | null;
+  tax_code: string | null;
   hotline: string | null;
   email: string | null;
   address: string | null;
@@ -28,6 +29,7 @@ export default function CompanySettingsPage() {
 
   const [companyName, setCompanyName] = useState("");
   const [companySlogan, setCompanySlogan] = useState("");
+  const [taxCode, setTaxCode] = useState("");
   const [hotline, setHotline] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
@@ -74,6 +76,7 @@ export default function CompanySettingsPage() {
       setRecordId(settings.id);
       setCompanyName(settings.company_name || "");
       setCompanySlogan(settings.company_slogan || "");
+      setTaxCode(settings.tax_code || "");
       setHotline(settings.hotline || "");
       setEmail(settings.email || "");
       setAddress(settings.address || "");
@@ -111,6 +114,7 @@ export default function CompanySettingsPage() {
       .update({
         company_name: companyName.trim(),
         company_slogan: companySlogan.trim() || null,
+        tax_code: taxCode.trim() || null,
         hotline: hotline.trim() || null,
         email: email.trim() || null,
         address: address.trim() || null,
@@ -215,6 +219,21 @@ export default function CompanySettingsPage() {
                 </div>
 
                 <div>
+                  <label className={labelClass}>
+                    Mã số thuế
+                  </label>
+
+                  <input
+                    value={taxCode}
+                    onChange={(e) =>
+                      setTaxCode(e.target.value)
+                    }
+                    className={inputClass}
+                    placeholder="0319582183"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
                   <label className={labelClass}>
                     Slogan
                   </label>

@@ -1,9 +1,60 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { supabase } from "@/lib/supabase";
+
+type CompanySettings = {
+  company_name: string | null;
+  tax_code: string | null;
+  hotline: string | null;
+  email: string | null;
+  address: string | null;
+  service_area: string | null;
+};
 
 export default function Footer() {
   const { t } = useLanguage();
+
+  const [company, setCompany] =
+    useState<CompanySettings | null>(null);
+
+  useEffect(() => {
+    const loadCompanySettings = async () => {
+      const { data, error } = await supabase
+        .from("company_settings")
+        .select(`
+          company_name,
+          tax_code,
+          hotline,
+          email,
+          address,
+          service_area
+        `)
+        .order("id", {
+          ascending: true,
+        })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.warn(
+          "Load footer company settings:",
+          error,
+        );
+        return;
+      }
+
+      if (data) {
+        setCompany(data as CompanySettings);
+      }
+    };
+
+    loadCompanySettings();
+  }, []);
+
+  const cleanPhone =
+    company?.hotline?.replace(/\D/g, "") || "";
 
   return (
     <footer className="bg-[#080d12] px-5 pt-16 text-white lg:px-8">
@@ -33,6 +84,27 @@ export default function Footer() {
             <p className="mt-5 max-w-[320px] text-[13px] leading-7 text-white/50">
               {t.footer.description}
             </p>
+
+            {/* COMPANY LEGAL INFO */}
+            <div className="mt-6 space-y-2 border-t border-white/10 pt-5">
+              {company?.company_name && (
+                <p className="text-[13px] font-bold uppercase leading-6 text-white/80">
+                  {company.company_name}
+                </p>
+              )}
+
+              {company?.tax_code && (
+                <p className="text-[12px] text-white/50">
+                  MST: {company.tax_code}
+                </p>
+              )}
+
+              {company?.address && (
+                <p className="max-w-[320px] text-[12px] leading-6 text-white/50">
+                  {company.address}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* QUICK LINKS */}
@@ -80,41 +152,59 @@ export default function Footer() {
             </h3>
 
             <div className="mt-5 space-y-5">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
-                  {t.footer.hotline}
-                </p>
+              {company?.hotline && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
+                    {t.footer.hotline}
+                  </p>
 
-                <a
-                  href="tel:0943666866"
-                  className="mt-1 inline-block text-[15px] font-bold text-white/80 transition hover:text-[#d7a53a]"
-                >
-                  0943 666 866
-                </a>
-              </div>
+                  <a
+                    href={`tel:${cleanPhone}`}
+                    className="mt-1 inline-block text-[15px] font-bold text-white/80 transition hover:text-[#d7a53a]"
+                  >
+                    {company.hotline}
+                  </a>
+                </div>
+              )}
 
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
-                  {t.footer.email}
-                </p>
+              {company?.email && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
+                    {t.footer.email}
+                  </p>
 
-                <a
-                  href="mailto:info@tinhaiphat.com"
-                  className="mt-1 inline-block text-[13px] text-white/60 transition hover:text-[#d7a53a]"
-                >
-                  info@tinhaiphat.com
-                </a>
-              </div>
+                  <a
+                    href={`mailto:${company.email}`}
+                    className="mt-1 inline-block break-all text-[13px] text-white/60 transition hover:text-[#d7a53a]"
+                  >
+                    {company.email}
+                  </a>
+                </div>
+              )}
 
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
-                  {t.footer.serviceArea}
-                </p>
+              {company?.address && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
+                    Địa chỉ
+                  </p>
 
-                <p className="mt-1 text-[13px] text-white/60">
-                  {t.footer.serviceAreaValue}
-                </p>
-              </div>
+                  <p className="mt-1 text-[13px] leading-6 text-white/60">
+                    {company.address}
+                  </p>
+                </div>
+              )}
+
+              {company?.service_area && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
+                    {t.footer.serviceArea}
+                  </p>
+
+                  <p className="mt-1 text-[13px] leading-6 text-white/60">
+                    {company.service_area}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -124,11 +214,17 @@ export default function Footer() {
           <p>{t.footer.copyright}</p>
 
           <div className="flex flex-wrap gap-5">
-            <a href="#" className="transition hover:text-[#d7a53a]">
+            <a
+              href="#"
+              className="transition hover:text-[#d7a53a]"
+            >
               {t.footer.privacy}
             </a>
 
-            <a href="#" className="transition hover:text-[#d7a53a]">
+            <a
+              href="#"
+              className="transition hover:text-[#d7a53a]"
+            >
               {t.footer.terms}
             </a>
           </div>
