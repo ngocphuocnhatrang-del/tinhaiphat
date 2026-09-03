@@ -40,22 +40,20 @@ export default function FeaturedProjects() {
 
       const { data, error } = await supabase
         .from("projects")
-        .select(
-          `
-            id,
-            title_vi,
-            title_en,
-            location_vi,
-            location_en,
-            type_vi,
-            type_en,
-            image_url,
-            featured,
-            published,
-            sort_order,
-            created_at
-          `,
-        )
+        .select(`
+          id,
+          title_vi,
+          title_en,
+          location_vi,
+          location_en,
+          type_vi,
+          type_en,
+          image_url,
+          featured,
+          published,
+          sort_order,
+          created_at
+        `)
         .eq("published", true)
         .eq("featured", true)
         .order("sort_order", { ascending: true })
@@ -147,6 +145,7 @@ export default function FeaturedProjects() {
     >
       <div className="mx-auto max-w-[1440px]">
         {/* TITLE */}
+
         <div className="text-center">
           <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.3em] text-[#d7a53a]">
             {t.projects.eyebrow}
@@ -160,6 +159,7 @@ export default function FeaturedProjects() {
         </div>
 
         {/* FILTER */}
+
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           {t.projects.filters.map((filter, index) => {
             const filterKey =
@@ -185,6 +185,7 @@ export default function FeaturedProjects() {
         </div>
 
         {/* LOADING */}
+
         {loading && (
           <div className="mt-12 text-center">
             <p className="text-[13px] text-white/45">
@@ -196,6 +197,7 @@ export default function FeaturedProjects() {
         )}
 
         {/* EMPTY */}
+
         {!loading && projects.length === 0 && (
           <div className="mt-12 border border-white/10 bg-white/[0.02] px-6 py-12 text-center">
             <p className="text-[13px] text-white/45">
@@ -207,6 +209,7 @@ export default function FeaturedProjects() {
         )}
 
         {/* PROJECT GRID */}
+
         {!loading && projects.length > 0 && (
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {projects.map((project) => (
@@ -214,21 +217,26 @@ export default function FeaturedProjects() {
                 key={project.id}
                 className="group overflow-hidden border border-white/10 bg-[#111922]"
               >
-                <div className="relative h-[330px] overflow-hidden bg-[#1b2530]">
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  />
+                <a
+                  href={`/du-an/${project.id}`}
+                  className="block"
+                >
+                  <div className="relative h-[330px] overflow-hidden bg-[#1b2530]">
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
 
-                  {project.type && (
-                    <span className="absolute left-4 top-4 bg-[#d7a53a] px-3 py-1.5 text-[10px] font-bold uppercase text-[#0b1118]">
-                      {project.type}
-                    </span>
-                  )}
-                </div>
+                    {project.type && (
+                      <span className="absolute left-4 top-4 bg-[#d7a53a] px-3 py-1.5 text-[10px] font-bold uppercase text-[#0b1118]">
+                        {project.type}
+                      </span>
+                    )}
+                  </div>
+                </a>
 
                 <div className="p-5">
                   <h3 className="text-[17px] font-extrabold">
@@ -242,8 +250,8 @@ export default function FeaturedProjects() {
                   )}
 
                   <a
-                    href="/du-an"
-                    className="mt-5 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#d7a53a]"
+                    href={`/du-an/${project.id}`}
+                    className="mt-5 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#d7a53a] transition hover:text-[#e6b64d]"
                   >
                     {t.projects.viewProject} →
                   </a>
@@ -254,6 +262,7 @@ export default function FeaturedProjects() {
         )}
 
         {/* VIEW ALL */}
+
         <div className="mt-10 text-center">
           <a
             href="/du-an"
